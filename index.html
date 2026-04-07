@@ -1,0 +1,1728 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1억 RPG — 억만장자 퀘스트</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700&family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0b0b14;
+  --card: #151525;
+  --card2: #1a1a35;
+  --gold: #ffcc00;
+  --gold2: #ffe135;
+  --gold-dim: #886600;
+  --purple: #9d50bb;
+  --purple2: #6e48aa;
+  --text: #ffffff;
+  --text2: #a0a0c0;
+  --border: #333344;
+  --border-bright: #444466;
+  --red: #ff3333;
+  --green: #33ff33;
+  --radius: 0px; /* Pixel-perfect */
+  --radius-sm: 0px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; image-rendering: pixelated; }
+body {
+  font-family: 'Silkscreen', 'Noto Sans KR', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+h1, h2, .title-font { font-family: 'Press Start 2P', cursive; text-transform: uppercase; }
+
+/* ========== LAYOUT ========== */
+#app { max-width: 480px; margin: 0 auto; padding-bottom: 80px; }
+
+/* ========== AUTH ========== */
+#auth-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.auth-logo {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 1.4rem;
+  color: var(--gold);
+  text-align: center;
+  margin-bottom: 12px;
+  text-shadow: 4px 4px 0px rgba(0,0,0,0.5);
+}
+.auth-sub {
+  color: var(--text2);
+  font-size: 0.75rem;
+  text-align: center;
+  margin-bottom: 32px;
+  letter-spacing: 1px;
+}
+.auth-box {
+  width: 100%;
+  max-width: 360px;
+  background: var(--card);
+  padding: 28px 24px;
+  border: 4px solid var(--border);
+  box-shadow: 4px 4px 0px #000;
+  position: relative;
+}
+.auth-box::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border: 2px solid var(--border-bright);
+  pointer-events: none;
+}
+.auth-tabs {
+  display: flex;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  padding: 4px;
+  margin-bottom: 24px;
+}
+.auth-tab {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: transparent;
+  color: var(--text2);
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+.auth-tab.active {
+  background: var(--gold);
+  color: #000;
+  font-weight: 700;
+}
+.form-group { margin-bottom: 16px; }
+.form-group label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text2);
+  margin-bottom: 6px;
+}
+.form-group input {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.btn-primary {
+  width: 100%;
+  padding: 14px;
+  background: var(--gold);
+  border: 4px solid #000;
+  box-shadow: 4px 4px 0px rgba(0,0,0,0.5);
+  color: #000;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.1s;
+  position: relative;
+  text-transform: uppercase;
+}
+.btn-primary:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0px #000; }
+.btn-primary:active { transform: translate(2px, 2px); box-shadow: 0px 0px 0px #000; }
+.auth-error {
+  color: var(--red);
+  font-size: 0.8rem;
+  margin-top: 10px;
+  text-align: center;
+  min-height: 20px;
+}
+
+/* ========== HEADER ========== */
+#header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(14,14,26,0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 480px;
+  margin: 0 auto;
+}
+.header-left { display: flex; align-items: center; gap: 10px; }
+.header-logo { font-family: 'Press Start 2P', cursive; font-size: 0.8rem; color: var(--gold); }
+.level-badge {
+  background: var(--purple);
+  color: #fff;
+  font-size: 0.65rem;
+  padding: 4px 8px;
+  border: 2px solid #000;
+  box-shadow: 2px 2px 0px rgba(0,0,0,0.3);
+  font-weight: 700;
+}
+.header-user { font-size: 0.75rem; color: var(--text2); }
+.header-right { display: flex; align-items: center; gap: 8px; }
+.btn-icon {
+  background: var(--card);
+  border: 2px solid var(--border);
+  color: var(--text2);
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 0.65rem;
+  font-family: 'Silkscreen', sans-serif;
+  transition: all 0.2s;
+  box-shadow: 2px 2px 0px #000;
+}
+.btn-icon:hover { border-color: var(--gold); color: var(--gold); transform: translate(-1px, -1px); box-shadow: 3px 3px 0px #000; }
+
+/* ========== MAIN CONTENT ========== */
+#main-screen { padding: 0 16px; }
+
+/* ========== CHARACTER CARD ========== */
+.char-card {
+  padding: 24px 20px 20px;
+  margin: 16px 0;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.8s ease;
+  border: 4px solid var(--border);
+  box-shadow: 4px 4px 0px #000;
+  min-height: 320px;
+}
+.char-card::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border: 2px solid var(--border-bright);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Level backgrounds - Retro Palette */
+.lv1  { background: #1a1a1a; }
+.lv2  { background: #2a2a3a; }
+.lv3  { background: #202040; }
+.lv4  { background: #1a1a50; }
+.lv5  { background: #2a1a4a; }
+.lv6  { background: #3a1a5a; }
+.lv7  { background: #4a1a6a; }
+.lv8  { background: #5a1a7a; }
+.lv9  { background: #7a3a00; }
+.lv10 { background: #8a6a00; }
+
+.char-env {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.5);
+  z-index: 1;
+}
+.char-body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.total-amount {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 1.2rem;
+  color: var(--gold);
+  text-align: center;
+  margin-bottom: 20px;
+  text-shadow: 4px 4px 0px rgba(0,0,0,0.5);
+}
+.char-emoji-wrap {
+  position: relative;
+  cursor: pointer;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+.char-sprite {
+  width: 160px;
+  height: 160px;
+  background-image: url('assets/char.png');
+  background-size: 200%;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  transition: transform 0.1s, background-position 0.2s;
+  user-select: none;
+  filter: drop-shadow(4px 4px 0px rgba(0,0,0,0.5));
+}
+/* Positions based on 1024x1024 2x2 grid */
+.sp1 { background-position: 8% 10%; } /* Beggar */
+.sp2 { background-position: 92% 10%; } /* Office */
+.sp3 { background-position: 8% 90%; } /* Exec */
+.sp4 { background-position: 92% 90%; } /* Billionaire */
+
+.char-emoji-wrap.bounce .char-sprite {
+  animation: charBounce 0.55s ease;
+}
+@keyframes charBounce {
+  0%   { transform: scale(1) translateY(0); }
+  20%  { transform: scale(1.18) translateY(-14px); }
+  40%  { transform: scale(0.95) translateY(4px); }
+  60%  { transform: scale(1.1) translateY(-7px); }
+  80%  { transform: scale(0.98) translateY(2px); }
+  100% { transform: scale(1) translateY(0); }
+}
+.speech-bubble {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.88);
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  font-size: 0.8rem;
+  padding: 8px 14px;
+  border-radius: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  z-index: 10;
+  max-width: 180px;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.4;
+}
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--gold);
+}
+.speech-bubble.show { opacity: 1; }
+.char-title {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.8rem;
+  color: var(--gold);
+  text-shadow: 2px 2px 0px rgba(0,0,0,0.5);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+.char-item {
+  font-size: 0.65rem;
+  color: var(--text2);
+  margin-bottom: 20px;
+  letter-spacing: 0.5px;
+}
+.progress-section { width: 100%; }
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.6rem;
+  color: var(--text2);
+  margin-bottom: 4px;
+  font-family: 'Press Start 2P', cursive;
+}
+.progress-bar-wrap {
+  width: 100%;
+  height: 16px;
+  background: #222;
+  border: 4px solid var(--border);
+  box-shadow: inset 4px 4px 0px #000;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.progress-bar-fill {
+  height: 100%;
+  transition: width 0.8s cubic-bezier(0.1, 0.7, 0.1, 1);
+  position: relative;
+}
+.progress-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 35%;
+  background: rgba(255,255,255,0.2);
+}
+.bar-gold   { background: #ffcc00; box-shadow: inset -4px -4px 0px #886600; }
+.bar-purple { background: #9d50bb; box-shadow: inset -4px -4px 0px #4a148c; }
+
+/* ========== FORECAST BANNER ========== */
+.forecast-banner {
+  background: var(--card);
+  border: 4px solid var(--border);
+  box-shadow: 4px 4px 0px #000;
+  padding: 16px;
+  margin-bottom: 16px;
+  position: relative;
+}
+.forecast-banner::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border: 2px solid var(--border-bright);
+}
+.forecast-main {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.65rem;
+  color: var(--gold);
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+.forecast-sub {
+  font-size: 0.7rem;
+  color: var(--text2);
+  margin-bottom: 12px;
+}
+.forecast-pace {
+  display: inline-block;
+  font-size: 0.65rem;
+  padding: 4px 8px;
+  background: #222;
+  color: var(--gold);
+  border: 2px solid var(--gold);
+  margin-bottom: 8px;
+  font-family: 'Press Start 2P', cursive;
+}
+.forecast-next {
+  font-size: 0.78rem;
+  color: var(--text2);
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+  margin-top: 4px;
+  line-height: 1.5;
+}
+.forecast-next span { color: var(--gold); font-weight: 700; }
+
+/* ========== SAVE BUTTON ========== */
+.save-btn-wrap { margin-bottom: 16px; }
+.btn-save {
+  width: 100%;
+  padding: 16px;
+  background: var(--gold);
+  border: 4px solid #000;
+  box-shadow: 6px 6px 0px rgba(0,0,0,0.5);
+  color: #000;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.1s;
+  text-transform: uppercase;
+}
+.btn-save:hover { transform: translate(-2px, -2px); box-shadow: 8px 8px 0px rgba(0,0,0,0.6); }
+.btn-save:active { transform: translate(2px, 2px); box-shadow: 0px 0px 0px #000; }
+
+/* ========== SECTION CARD ========== */
+.section-card {
+  background: var(--card);
+  border: 4px solid var(--border);
+  box-shadow: 4px 4px 0px #000;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+.section-title {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.7rem;
+  color: var(--text);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-transform: uppercase;
+}
+
+/* ========== CHART ========== */
+#chart-canvas { width: 100%; display: block; border-radius: var(--radius-sm); }
+.chart-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+.stat-item {
+  background: var(--bg);
+  border: 2px solid var(--border);
+  padding: 10px 12px;
+  box-shadow: 2px 2px 0px #000;
+}
+.stat-label { font-size: 0.65rem; color: var(--text2); margin-bottom: 6px; text-transform: uppercase; }
+.stat-value { font-size: 0.75rem; font-weight: 700; color: var(--gold); font-family: 'Silkscreen', sans-serif; }
+
+/* ========== QUESTS ========== */
+.quest-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: var(--bg);
+  border: 2px solid var(--border);
+  box-shadow: 2px 2px 0px #000;
+  margin-bottom: 10px;
+}
+.quest-icon { font-size: 1.2rem; flex-shrink: 0; }
+.quest-name { font-size: 0.75rem; font-weight: 700; margin-bottom: 6px; font-family: 'Silkscreen', sans-serif; }
+.quest-desc { font-size: 0.6rem; color: var(--text2); margin-bottom: 8px; }
+.quest-progress-wrap {
+  height: 8px;
+  background: #111;
+  border: 1px solid var(--border);
+}
+.quest-progress-fill {
+  height: 100%;
+  background: var(--purple);
+  box-shadow: inset -2px -2px 0px rgba(0,0,0,0.3);
+}
+.quest-reward { font-size: 0.55rem; color: var(--gold); font-family: 'Press Start 2P', cursive; flex-shrink: 0; }
+.quest-done   { font-size: 0.55rem; color: var(--green); font-family: 'Press Start 2P', cursive; flex-shrink: 0; }
+
+/* ========== BADGES ========== */
+.badges-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.badge-item {
+  background: var(--bg);
+  padding: 14px 8px;
+  text-align: center;
+  border: 2px solid var(--border);
+  box-shadow: 2px 2px 0px #000;
+  transition: all 0.2s;
+}
+.badge-item.earned { border-color: var(--gold); background: rgba(255,204,0,0.05); transform: translateY(-2px); box-shadow: 4px 4px 0px #000; }
+.badge-emoji { font-size: 1.8rem; display: block; margin-bottom: 6px; }
+.badge-item:not(.earned) .badge-emoji { filter: grayscale(1); opacity: 0.28; }
+.badge-name { font-size: 0.7rem; color: var(--text2); }
+.badge-item.earned .badge-name { color: var(--gold); }
+
+/* ========== TRANSACTIONS ========== */
+.tx-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 2px solid var(--border);
+  gap: 10px;
+}
+.tx-date { font-size: 0.6rem; color: var(--text2); margin-bottom: 6px; font-family: 'Press Start 2P', cursive; }
+.tx-memo { font-size: 0.75rem; color: #fff; font-family: 'Silkscreen', sans-serif; }
+.tx-amount { font-size: 0.75rem; color: var(--gold); font-family: 'Press Start 2P', cursive; }
+.btn-del {
+  background: #333;
+  border: 2px solid #555;
+  color: #fff;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  line-height: 1;
+}
+.btn-del:hover { border-color: var(--red); color: var(--red); }
+.tx-empty { color: var(--text2); font-size: 0.85rem; text-align: center; padding: 20px 0; }
+
+/* ========== DATA IO ========== */
+.data-io { display: flex; gap: 10px; }
+.btn-secondary {
+  flex: 1;
+  padding: 10px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+}
+.btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
+
+/* ========== MODALS ========== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.72);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.modal-overlay.show { opacity: 1; pointer-events: auto; }
+.modal-box {
+  background: var(--card2);
+  border: 4px solid var(--gold);
+  padding: 32px 24px;
+  width: 100%;
+  max-width: 480px;
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.1, 0.7, 0.1, 1);
+  box-shadow: 0px -10px 0px rgba(0,0,0,0.5);
+}
+.modal-overlay.show .modal-box { transform: translateY(0); }
+.modal-title {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.9rem;
+  color: var(--gold);
+  margin-bottom: 24px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* Save modal */
+.quick-btns { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: nowrap; }
+.btn-quick {
+  flex: 1;
+  padding: 10px 4px;
+  background: #111;
+  border: 2px solid var(--border);
+  color: var(--text);
+  cursor: pointer;
+  font-family: 'Silkscreen', sans-serif;
+  font-size: 0.65rem;
+  transition: all 0.1s;
+}
+.btn-quick:hover { border-color: var(--gold); }
+.btn-quick.selected { background: var(--gold); border-color: #000; color: #000; font-weight: 700; }
+.modal-input {
+  width: 100%;
+  padding: 14px;
+  background: #000;
+  border: 4px solid var(--border);
+  color: var(--gold);
+  font-family: 'Silkscreen', sans-serif;
+  font-size: 1rem;
+  outline: none;
+  margin-bottom: 16px;
+}
+.modal-input:focus { border-color: var(--gold); }
+.modal-btns { display: flex; gap: 10px; margin-top: 8px; }
+.btn-cancel {
+  flex: 1;
+  padding: 14px;
+  background: #222;
+  border: 4px solid #444;
+  color: #888;
+  cursor: pointer;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+.btn-cancel:hover { border-color: #666; color: #fff; }
+
+/* Level up modal (center) */
+.modal-overlay.center-modal {
+  align-items: center;
+  justify-content: center;
+}
+.levelup-box {
+  background: #000;
+  border: 6px solid var(--gold);
+  padding: 40px 20px;
+  width: 90%;
+  max-width: 380px;
+  text-align: center;
+  transform: scale(0.7);
+  transition: transform 0.5s cubic-bezier(0.1, 0.7, 0.1, 1);
+  position: relative;
+  box-shadow: 10px 10px 0px rgba(0,0,0,0.8);
+}
+.modal-overlay.center-modal.show .levelup-box { transform: scale(1); }
+.levelup-title { font-family: 'Press Start 2P', cursive; font-size: 1.2rem; color: var(--gold); margin-bottom: 12px; text-transform: uppercase; }
+.levelup-sub   { color: var(--text2); font-size: 0.7rem; margin-bottom: 12px; font-family: 'Silkscreen', sans-serif; }
+.levelup-name  { font-family: 'Press Start 2P', cursive; font-size: 1rem; color: #fff; margin-bottom: 30px; text-transform: uppercase; }
+
+/* Mission modal */
+.mission-box {
+  background: #000;
+  border: 4px solid var(--purple);
+  padding: 30px 24px;
+  width: 88%;
+  max-width: 340px;
+  text-align: center;
+  transform: scale(0.8);
+  transition: transform 0.4s cubic-bezier(0.1, 0.7, 0.1, 1);
+  box-shadow: 8px 8px 0px rgba(0,0,0,0.8);
+}
+.modal-overlay.center-modal.show .mission-box { transform: scale(1); }
+.mission-icon  { font-size: 2.5rem; display: block; margin-bottom: 12px; }
+.mission-title { font-family: 'Press Start 2P', cursive; font-size: 0.8rem; color: var(--purple2); margin-bottom: 8px; text-transform: uppercase; }
+.mission-exp   { font-family: 'Silkscreen', sans-serif; font-size: 0.9rem; color: var(--gold); font-weight: 700; margin-bottom: 24px; }
+
+/* Confetti */
+.confetti { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; overflow: hidden; }
+.confetti-piece {
+  position: absolute;
+  width: 8px; height: 8px;
+  top: -10px;
+  animation: confettiFall 2s ease-in forwards;
+  border-radius: 2px;
+}
+@keyframes confettiFall {
+  0%   { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(420px) rotate(720deg); opacity: 0; }
+}
+
+/* ========== FLOATING PARTICLES ========== */
+.particle {
+  position: fixed;
+  pointer-events: none;
+  z-index: 999;
+  font-size: 1.4rem;
+  animation: particleFly 1s ease-out forwards;
+}
+@keyframes particleFly {
+  0%   { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-100px) scale(0.4); opacity: 0; }
+}
+
+/* ========== SCROLLBAR ========== */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 380px) {
+  .btn-quick { font-size: 0.72rem; }
+  .total-amount { font-size: 1.35rem; }
+  .char-emoji { font-size: 4.2rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ========================== AUTH SCREEN ========================== -->
+<div id="auth-screen">
+  <div class="auth-logo">💰 1억 RPG</div>
+  <div class="auth-sub">거지에서 억만장자로 — 저금의 RPG</div>
+  <div class="auth-box">
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">로그인</button>
+      <button class="auth-tab" onclick="switchAuthTab('signup')">회원가입</button>
+    </div>
+
+    <!-- Login -->
+    <div id="login-form">
+      <div class="form-group">
+        <label>이메일</label>
+        <input type="email" id="login-email" placeholder="email@example.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label>비밀번호</label>
+        <input type="password" id="login-pw" placeholder="비밀번호" autocomplete="current-password">
+      </div>
+      <button class="btn-primary" onclick="doLogin()">로그인</button>
+      <div class="auth-error" id="login-error"></div>
+    </div>
+
+    <!-- Signup -->
+    <div id="signup-form" style="display:none">
+      <div class="form-group">
+        <label>닉네임</label>
+        <input type="text" id="signup-name" placeholder="닉네임 (2~10자)">
+      </div>
+      <div class="form-group">
+        <label>이메일</label>
+        <input type="email" id="signup-email" placeholder="email@example.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label>비밀번호</label>
+        <input type="password" id="signup-pw" placeholder="비밀번호 (6자 이상)" autocomplete="new-password">
+      </div>
+      <button class="btn-primary" onclick="doSignup()">회원가입</button>
+      <div class="auth-error" id="signup-error"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========================== MAIN APP ========================== -->
+<div id="app" style="display:none">
+
+  <!-- Sticky Header -->
+  <div id="header">
+    <div class="header-left">
+      <div class="header-logo">💰 1억 RPG</div>
+      <div class="level-badge" id="header-level">Lv.1</div>
+    </div>
+    <div class="header-user" id="header-user"></div>
+    <div class="header-right">
+      <button class="btn-icon" onclick="showDataModal()">💾 내보내기</button>
+      <button class="btn-icon" onclick="doLogout()">로그아웃</button>
+    </div>
+  </div>
+
+  <div id="main-screen">
+
+    <!-- Character Card -->
+    <div class="char-card lv1" id="char-card">
+      <div class="char-env" id="char-env">🌧️ 어두운 골목</div>
+      <div class="char-body">
+        <div class="total-amount" id="total-display">0원</div>
+
+        <div class="char-emoji-wrap" id="char-emoji-wrap" onclick="onCharClick()">
+          <div class="speech-bubble" id="speech-bubble"></div>
+          <div class="char-sprite sp1" id="char-sprite"></div>
+        </div>
+
+        <div class="char-title" id="char-title">누더기 거지</div>
+        <div class="char-item" id="char-item">구멍난 옷, 깡통</div>
+
+        <div class="progress-section">
+          <div class="progress-label">
+            <span>1억 목표</span>
+            <span id="goal-pct">0%</span>
+          </div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill bar-gold" id="goal-bar" style="width:0%"></div>
+          </div>
+          <div class="progress-label">
+            <span id="exp-label">EXP (Lv.1)</span>
+            <span id="exp-pct">0%</span>
+          </div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill bar-purple" id="exp-bar" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Forecast Banner -->
+    <div class="forecast-banner">
+      <div class="forecast-main" id="forecast-main">저금을 시작하면 예상일을 알 수 있어요</div>
+      <div class="forecast-sub"  id="forecast-sub"></div>
+      <div class="forecast-pace" id="forecast-pace" style="display:none"></div>
+      <div class="forecast-next" id="forecast-next" style="display:none"></div>
+    </div>
+
+    <!-- Save Button -->
+    <div class="save-btn-wrap">
+      <button class="btn-save" onclick="openSaveModal()">💰 저금하기</button>
+    </div>
+
+    <!-- Monthly Chart -->
+    <div class="section-card">
+      <div class="section-title">📊 월별 저금 통계</div>
+      <canvas id="chart-canvas" height="180"></canvas>
+      <div class="chart-stats">
+        <div class="stat-item"><div class="stat-label">총 저금 횟수</div><div class="stat-value" id="stat-count">0회</div></div>
+        <div class="stat-item"><div class="stat-label">최대 단건</div><div class="stat-value" id="stat-max">0원</div></div>
+        <div class="stat-item"><div class="stat-label">많이 저금한 요일</div><div class="stat-value" id="stat-day">-</div></div>
+        <div class="stat-item"><div class="stat-label">최장 연속 저금</div><div class="stat-value" id="stat-streak">0일</div></div>
+      </div>
+    </div>
+
+    <!-- Quests -->
+    <div class="section-card">
+      <div class="section-title">⚔️ 퀘스트</div>
+      <div id="quest-list"></div>
+    </div>
+
+    <!-- Badges -->
+    <div class="section-card">
+      <div class="section-title">🏅 뱃지 컬렉션</div>
+      <div class="badges-grid" id="badge-list"></div>
+    </div>
+
+    <!-- Transactions -->
+    <div class="section-card">
+      <div class="section-title">📜 저금 기록</div>
+      <div id="tx-list"></div>
+    </div>
+
+  </div><!-- /main-screen -->
+</div><!-- /app -->
+
+<!-- ========================== MODALS ========================== -->
+
+<!-- Save Modal -->
+<div class="modal-overlay" id="save-modal" onclick="onSaveOverlayClick(event)">
+  <div class="modal-box">
+    <div class="modal-title">💰 저금하기</div>
+    <div class="quick-btns">
+      <button class="btn-quick" onclick="setQuickAmount(10000, this)">1만</button>
+      <button class="btn-quick" onclick="setQuickAmount(50000, this)">5만</button>
+      <button class="btn-quick" onclick="setQuickAmount(100000, this)">10만</button>
+      <button class="btn-quick" onclick="setQuickAmount(500000, this)">50만</button>
+      <button class="btn-quick" onclick="setQuickAmount(1000000, this)">100만</button>
+    </div>
+    <input class="modal-input" type="number" id="save-amount" placeholder="금액 직접 입력 (원)" min="1" oninput="clearQuickSelect()">
+    <input class="modal-input" type="text"   id="save-memo"   placeholder="메모 (선택)">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeSaveModal()">취소</button>
+      <button class="btn-primary" style="flex:2" onclick="doSave()">저금!</button>
+    </div>
+  </div>
+</div>
+
+<!-- Level Up Modal -->
+<div class="modal-overlay center-modal" id="levelup-modal" onclick="closeLevelupModal()">
+  <div class="levelup-box" onclick="event.stopPropagation()">
+    <div class="confetti" id="confetti-wrap"></div>
+    <div class="char-sprite sp2" id="levelup-sprite" style="margin: 0 auto 20px auto; transform: scale(1.2);"></div>
+    <div class="levelup-title">레벨 업!</div>
+    <div class="levelup-sub" id="levelup-lv">Lv.2 달성</div>
+    <div class="levelup-name" id="levelup-name">평범한 시민</div>
+    <button class="btn-primary" onclick="closeLevelupModal()">계속 저금하기!</button>
+  </div>
+</div>
+
+<!-- Mission Modal -->
+<div class="modal-overlay center-modal" id="mission-modal" onclick="closeMissionModal()">
+  <div class="mission-box" onclick="event.stopPropagation()">
+    <span class="mission-icon" id="mission-icon">⚔️</span>
+    <div class="mission-title" id="mission-title">퀘스트 완료!</div>
+    <div class="mission-exp"   id="mission-exp">+500 EXP 획득!</div>
+    <button class="btn-primary" onclick="closeMissionModal()">확인</button>
+  </div>
+</div>
+
+<!-- Data IO Modal -->
+<div class="modal-overlay" id="data-modal" onclick="onDataOverlayClick(event)">
+  <div class="modal-box">
+    <div class="modal-title">💾 데이터 관리</div>
+    <div class="data-io" style="margin-bottom:14px">
+      <button class="btn-secondary" onclick="exportData()">📤 내보내기 (JSON)</button>
+      <button class="btn-secondary" onclick="document.getElementById('import-file').click()">📥 불러오기 (JSON)</button>
+    </div>
+    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+    <p style="font-size:0.74rem;color:var(--text2);text-align:center;line-height:1.5">기기 변경 전 반드시 내보내기 하세요.<br>불러오기 시 현재 데이터가 덮어써집니다.</p>
+    <div class="modal-btns" style="margin-top:18px">
+      <button class="btn-cancel" onclick="closeDataModal()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========================== SCRIPT ========================== -->
+<script>
+'use strict';
+
+// ─────────────────────────────────────────────
+// CONSTANTS
+// ─────────────────────────────────────────────
+const GOAL = 100_000_000;
+
+const LEVELS = [
+  { lv:1,  min:0,           spriteClass:'sp1', title:'누더기 거지', env:'🌧️ 어두운 골목',  item:'구멍난 옷, 깡통',      bg:'lv1'  },
+  { lv:2,  min:1_000_000,   spriteClass:'sp2', title:'평범한 시민', env:'🏘️ 주택가',       item:'일반 옷',              bg:'lv2'  },
+  { lv:3,  min:3_000_000,   spriteClass:'sp2', title:'직장인',      env:'🏢 도심 거리',    item:'넥타이, 서류가방',      bg:'lv3'  },
+  { lv:4,  min:5_000_000,   spriteClass:'sp2', title:'대리',        env:'🏙️ 오피스 빌딩',  item:'정장, 노트북',          bg:'lv4'  },
+  { lv:5,  min:10_000_000,  spriteClass:'sp3', title:'과장',        env:'🌆 도시 야경',    item:'명품 시계',             bg:'lv5'  },
+  { lv:6,  min:20_000_000,  spriteClass:'sp3', title:'팀장',        env:'🏬 고급 빌딩',    item:'명품 수트',             bg:'lv6'  },
+  { lv:7,  min:30_000_000,  spriteClass:'sp3', title:'임원',        env:'🌃 펜트하우스',   item:'롤렉스, 벤츠',          bg:'lv7'  },
+  { lv:8,  min:50_000_000,  spriteClass:'sp4', title:'재벌 2세',    env:'🏰 저택',         item:'다이아몬드, 스포츠카',  bg:'lv8'  },
+  { lv:9,  min:70_000_000,  spriteClass:'sp4', title:'회장님',      env:'🛥️ 요트',         item:'전용기, 요트',          bg:'lv9'  },
+  { lv:10, min:100_000_000, spriteClass:'sp4', title:'억만장자',    env:'🌟 황금 궁전',    item:'황금 왕관, 모든 것',    bg:'lv10' },
+];
+
+const SPEECHES = {
+  1:  ['오늘도 배고프다...','동전 한 닢이라도...','언젠간 나도...'],
+  2:  ['첫 월급 들어왔다!','조금씩 모아보자','이제 시작이야!'],
+  3:  ['야근 수당이 들어왔다!','점심은 편의점 도시락...','커피값 아껴서 저금!'],
+  4:  ['이번 달 저금 목표 달성!','승진하면 더 모을 수 있어','저금이 재미있어지기 시작했다'],
+  5:  ['슬슬 여유가 생기는 것 같아','조금만 더!','이번 달 목표 달성!'],
+  6:  ['이 정도면 꽤 모았는데?','주변에서 부러워하기 시작했다','부자의 냄새가 나기 시작했어'],
+  7:  ['강남 아파트도 보이기 시작한다','이제 진짜 부자다','투자를 시작해볼까?'],
+  8:  ['포르쉐로 할까, 람보르기니로 할까','골프장 회원권?','거의 다 왔어...'],
+  9:  ['거의 다 왔다... 느껴진다','1억이 코앞이야!','마지막 스퍼트!'],
+  10: ['드디어 해냈다!! 🎉','1억 달성! 억만장자!','이제 2억을 향해!'],
+};
+
+const QUESTS = [
+  { id:'first',   icon:'🌱', name:'첫 저금',       desc:'처음으로 저금하기',          exp:500  },
+  { id:'m10',     icon:'💵', name:'10만원 달성',   desc:'누적 10만원 모으기',         exp:300  },
+  { id:'m100',    icon:'💴', name:'100만원 달성',  desc:'누적 100만원 모으기',        exp:500  },
+  { id:'m500',    icon:'💶', name:'500만원 달성',  desc:'누적 500만원 모으기',        exp:1000 },
+  { id:'m1000',   icon:'🏦', name:'천만장자',      desc:'누적 1,000만원 돌파',        exp:2000 },
+  { id:'streak7', icon:'🔥', name:'7일 연속 저금', desc:'7일 연속으로 저금하기',      exp:1000 },
+  { id:'big',     icon:'💰', name:'통 큰 저금',    desc:'단건 50만원 이상 저금',      exp:500  },
+];
+
+const BADGES = [
+  { id:'b_100',    emoji:'💴', name:'저금왕',   cond: u => u.total >= 1_000_000 },
+  { id:'b_1000',   emoji:'🏦', name:'천만장자', cond: u => u.total >= 10_000_000 },
+  { id:'b_5000',   emoji:'🎯', name:'반환점',   cond: u => u.total >= 50_000_000 },
+  { id:'b_goal',   emoji:'🏆', name:'억만장자', cond: u => u.total >= 100_000_000 },
+  { id:'b_streak', emoji:'🔥', name:'연속왕',   cond: u => calcMaxStreak(u) >= 7 },
+  { id:'b_big',    emoji:'💎', name:'거부',     cond: u => u.transactions.some(t => t.amount >= 1_000_000) },
+];
+
+const DAYS_KO = ['일','월','화','수','목','금','토'];
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let currentUser   = null;
+let speechTimer   = null;
+let missionQueue  = [];
+
+// ─────────────────────────────────────────────
+// CRYPTO — SHA-256
+// ─────────────────────────────────────────────
+async function hashPw(pw) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// ─────────────────────────────────────────────
+// STORAGE
+// ─────────────────────────────────────────────
+function getAllUsers() {
+  try { return JSON.parse(localStorage.getItem('rpg_users') || '{}'); } catch { return {}; }
+}
+function saveAllUsers(d) { localStorage.setItem('rpg_users', JSON.stringify(d)); }
+function getUser(email)  { return getAllUsers()[email] || null; }
+function saveUser(u)     { const all = getAllUsers(); all[u.email] = u; saveAllUsers(all); }
+function getSession()    { return localStorage.getItem('rpg_session') || null; }
+function setSession(e)   { localStorage.setItem('rpg_session', e); }
+function clearSession()  { localStorage.removeItem('rpg_session'); }
+
+// ─────────────────────────────────────────────
+// AUTH
+// ─────────────────────────────────────────────
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((b,i) => b.classList.toggle('active', (tab==='login'?i===0:i===1)));
+  document.getElementById('login-form').style.display  = tab==='login'  ? '' : 'none';
+  document.getElementById('signup-form').style.display = tab==='signup' ? '' : 'none';
+  document.getElementById('login-error').textContent  = '';
+  document.getElementById('signup-error').textContent = '';
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
+  const pw    = document.getElementById('login-pw').value;
+  const err   = document.getElementById('login-error');
+  if (!email || !pw) { err.textContent = '이메일과 비밀번호를 입력하세요.'; return; }
+  const hash = await hashPw(pw);
+  const user = getUser(email);
+  if (!user || user.pw !== hash) { err.textContent = '이메일 또는 비밀번호가 올바르지 않습니다.'; return; }
+  setSession(email);
+  currentUser = email;
+  showMain();
+}
+
+async function doSignup() {
+  const name  = document.getElementById('signup-name').value.trim();
+  const email = document.getElementById('signup-email').value.trim().toLowerCase();
+  const pw    = document.getElementById('signup-pw').value;
+  const err   = document.getElementById('signup-error');
+  if (!name || name.length < 2 || name.length > 10) { err.textContent = '닉네임은 2~10자로 입력하세요.'; return; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent = '올바른 이메일을 입력하세요.'; return; }
+  if (!pw || pw.length < 6) { err.textContent = '비밀번호는 6자 이상이어야 합니다.'; return; }
+  if (getUser(email)) { err.textContent = '이미 사용 중인 이메일입니다.'; return; }
+  const hash = await hashPw(pw);
+  const userData = { name, email, pw: hash, total: 0, exp: 0, completedMissions: [], transactions: [] };
+  saveUser(userData);
+  setSession(email);
+  currentUser = email;
+  showMain();
+}
+
+function doLogout() {
+  clearSession();
+  currentUser = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('auth-screen').style.display = '';
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-pw').value = '';
+}
+
+// ─────────────────────────────────────────────
+// LEVEL HELPERS
+// ─────────────────────────────────────────────
+function getLevelIdx(total) {
+  for (let i = LEVELS.length - 1; i >= 0; i--) {
+    if (total >= LEVELS[i].min) return i;
+  }
+  return 0;
+}
+function getLvData(total) { return LEVELS[getLevelIdx(total)]; }
+
+function getExpPct(total) {
+  const idx  = getLevelIdx(total);
+  const cur  = LEVELS[idx];
+  const next = LEVELS[idx + 1];
+  if (!next) return 100;
+  return Math.min(100, Math.floor(((total - cur.min) / (next.min - cur.min)) * 100));
+}
+
+// ─────────────────────────────────────────────
+// STREAK
+// ─────────────────────────────────────────────
+function calcCurrentStreak(userData) {
+  if (!userData.transactions.length) return 0;
+  const dates = [...new Set(userData.transactions.map(t => t.date))].sort().reverse();
+  if (!dates.length) return 0;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const last  = new Date(dates[0]); last.setHours(0,0,0,0);
+  if ((today - last) / 86400000 > 1) return 0;
+  let streak = 1, cur = last;
+  for (let i = 1; i < dates.length; i++) {
+    const prev = new Date(dates[i]); prev.setHours(0,0,0,0);
+    if (Math.round((cur - prev) / 86400000) === 1) { streak++; cur = prev; } else break;
+  }
+  return streak;
+}
+
+function calcMaxStreak(userData) {
+  if (!userData.transactions.length) return 0;
+  const dates = [...new Set(userData.transactions.map(t => t.date))].sort();
+  if (!dates.length) return 0;
+  let max = 1, cur = 1;
+  for (let i = 1; i < dates.length; i++) {
+    const diff = Math.round((new Date(dates[i]) - new Date(dates[i-1])) / 86400000);
+    if (diff === 1) { cur++; if (cur > max) max = cur; } else cur = 1;
+  }
+  return max;
+}
+
+// ─────────────────────────────────────────────
+// QUEST CHECK
+// ─────────────────────────────────────────────
+function questPassed(q, userData) {
+  switch (q.id) {
+    case 'first':   return userData.transactions.length >= 1;
+    case 'm10':     return userData.total >= 100_000;
+    case 'm100':    return userData.total >= 1_000_000;
+    case 'm500':    return userData.total >= 5_000_000;
+    case 'm1000':   return userData.total >= 10_000_000;
+    case 'streak7': return calcCurrentStreak(userData) >= 7;
+    case 'big':     return userData.transactions.some(t => t.amount >= 500_000);
+    default:        return false;
+  }
+}
+
+// ─────────────────────────────────────────────
+// FORECAST
+// ─────────────────────────────────────────────
+function calcForecast(userData) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const cutoff = new Date(today); cutoff.setDate(cutoff.getDate() - 30);
+  const sum30  = userData.transactions.filter(t => new Date(t.date) >= cutoff)
+                                       .reduce((a,t) => a + t.amount, 0);
+  const daily  = sum30 / 30;
+  const res    = { daily, sum30 };
+
+  if (!userData.transactions.length) {
+    return { ...res, hasData: false, msg: '저금을 시작하면 예상일을 알 수 있어요' };
+  }
+  if (sum30 === 0) {
+    return { ...res, hasData: false, msg: '최근 한 달 저금 기록이 있으면 예상일을 계산할 수 있어요' };
+  }
+
+  res.hasData = true;
+  const remaining = Math.max(0, GOAL - userData.total);
+  const daysLeft  = daily > 0 ? Math.ceil(remaining / daily) : Infinity;
+  const target    = new Date(today); target.setDate(target.getDate() + daysLeft);
+  res.target   = target;
+  res.daysLeft = daysLeft;
+
+  const monthly = daily * 30;
+  if (monthly >= 1_000_000) res.pace = { label: `🔥 빠름 (월 ${fmt(monthly)})` };
+  else if (monthly >= 300_000) res.pace = { label: `💪 보통 (월 ${fmt(monthly)})` };
+  else res.pace = { label: `⚡ 느림 (월 ${fmt(monthly)})` };
+
+  const idx  = getLevelIdx(userData.total);
+  const next = LEVELS[idx + 1];
+  if (next) {
+    const toNext   = next.min - userData.total;
+    const daysNext = daily > 0 ? Math.ceil(toNext / daily) : Infinity;
+    res.nextLv = { lv: next.lv, amount: toNext, days: daysNext };
+  }
+  return res;
+}
+
+// ─────────────────────────────────────────────
+// FORMAT HELPERS
+// ─────────────────────────────────────────────
+function fmt(n) {
+  if (n >= 100_000_000) return `${(n/100_000_000).toFixed(1)}억`;
+  if (n >= 10_000)      return `${Math.round(n/10_000)}만원`;
+  return `${n.toLocaleString()}원`;
+}
+function fmtDate(d) {
+  return `${d.getFullYear()}년 ${d.getMonth()+1}월`;
+}
+
+// ─────────────────────────────────────────────
+// SHOW MAIN
+// ─────────────────────────────────────────────
+function showMain() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').style.display = '';
+  renderAll();
+}
+
+// ─────────────────────────────────────────────
+// RENDER ALL
+// ─────────────────────────────────────────────
+function renderAll() {
+  const u = getUser(currentUser);
+  if (!u) return;
+  renderHeader(u);
+  renderCharCard(u);
+  renderForecast(u);
+  renderChart(u);
+  renderQuests(u);
+  renderBadges(u);
+  renderTransactions(u);
+}
+
+function renderHeader(u) {
+  const lv = getLvData(u.total);
+  document.getElementById('header-level').textContent = `Lv.${lv.lv}`;
+  document.getElementById('header-user').textContent  = u.name;
+}
+
+function renderCharCard(u) {
+  const lv   = getLvData(u.total);
+  const card = document.getElementById('char-card');
+  // swap bg class
+  card.className = `char-card ${lv.bg}`;
+  document.getElementById('char-env').textContent   = lv.env;
+  document.getElementById('char-sprite').className = `char-sprite ${lv.spriteClass}`;
+  document.getElementById('char-title').textContent = lv.title;
+  document.getElementById('char-item').textContent  = lv.item;
+  document.getElementById('total-display').textContent = `${u.total.toLocaleString()}원`;
+
+  const goalPct = Math.min(100, (u.total / GOAL) * 100);
+  document.getElementById('goal-bar').style.width = goalPct.toFixed(3) + '%';
+  document.getElementById('goal-pct').textContent = goalPct.toFixed(1) + '%';
+
+  const expPct = getExpPct(u.total);
+  document.getElementById('exp-bar').style.width  = expPct + '%';
+  document.getElementById('exp-pct').textContent  = expPct + '%';
+  document.getElementById('exp-label').textContent = `EXP (Lv.${lv.lv})`;
+}
+
+function renderForecast(u) {
+  const fc   = calcForecast(u);
+  const main = document.getElementById('forecast-main');
+  const sub  = document.getElementById('forecast-sub');
+  const pace = document.getElementById('forecast-pace');
+  const next = document.getElementById('forecast-next');
+
+  if (!fc.hasData) {
+    main.textContent   = fc.msg;
+    sub.textContent    = '';
+    pace.style.display = 'none';
+    next.style.display = 'none';
+    return;
+  }
+  if (u.total >= GOAL) {
+    main.textContent   = '🏆 1억 달성! 억만장자!';
+    sub.textContent    = '목표를 달성하셨습니다. 정말 대단해요!';
+    pace.style.display = 'none';
+    next.style.display = 'none';
+    return;
+  }
+  if (fc.daysLeft === Infinity) {
+    main.textContent   = '저금 페이스를 높여봐요!';
+    sub.textContent    = '현재 데이터로는 달성일을 계산하기 어려워요';
+    pace.style.display = 'none';
+    next.style.display = 'none';
+    return;
+  }
+
+  main.textContent   = `현재 페이스라면 ${fmtDate(fc.target)} 달성 예상`;
+  sub.textContent    = `약 ${fc.daysLeft.toLocaleString()}일 남았어요 · 일평균 ${fmt(fc.daily)}`;
+  pace.style.display = 'inline-block';
+  pace.textContent   = fc.pace.label;
+
+  if (fc.nextLv) {
+    next.style.display = 'block';
+    next.innerHTML = `Lv.${fc.nextLv.lv}까지 <span>${fmt(fc.nextLv.amount)}</span> 남았어요 — 이 페이스면 <span>${fc.nextLv.days === Infinity ? '?' : fc.nextLv.days.toLocaleString()}일 뒤</span>`;
+  } else {
+    next.style.display = 'none';
+  }
+}
+
+// ─────────────────────────────────────────────
+// CHART (Canvas)
+// ─────────────────────────────────────────────
+function renderChart(u) {
+  const canvas = document.getElementById('chart-canvas');
+  const ctx    = canvas.getContext('2d');
+  const dpr    = window.devicePixelRatio || 1;
+  const W      = Math.floor(canvas.parentElement.clientWidth - 40);
+  const H      = 180;
+
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, W, H);
+
+  // Build last 6 months
+  const now = new Date();
+  const months = [];
+  for (let i = 5; i >= 0; i--) {
+    const d   = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    months.push({ key, label: `${d.getMonth()+1}월`, total: 0 });
+  }
+  u.transactions.forEach(t => {
+    const m = months.find(m => m.key === t.month);
+    if (m) m.total += t.amount;
+  });
+
+  const curKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const maxVal = Math.max(...months.map(m => m.total), 1);
+  const avg    = months.reduce((a,m) => a + m.total, 0) / 6;
+
+  const pL=10, pR=10, pT=22, pB=38;
+  const cW = W - pL - pR;
+  const cH = H - pT - pB;
+  const barW = Math.max(8, Math.floor(cW / months.length * 0.52));
+  const slot  = cW / months.length;
+
+  months.forEach((m, i) => {
+    const cx   = pL + slot * i + slot / 2;
+    const x    = cx - barW / 2;
+    const bH   = maxVal > 0 ? (m.total / maxVal) * cH : 0;
+    const y    = pT + cH - bH;
+    const isCur = m.key === curKey;
+    const r    = Math.min(4, barW / 2);
+
+    // Bar gradient
+    if (isCur) {
+      const g = ctx.createLinearGradient(0, y, 0, pT + cH);
+      g.addColorStop(0, '#f0c040');
+      g.addColorStop(1, '#7a5000');
+      ctx.fillStyle = g;
+    } else {
+      ctx.fillStyle = '#2a2a5a';
+    }
+
+    if (bH > r * 2) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + barW - r, y);
+      ctx.arcTo(x + barW, y,         x + barW, y + r,       r);
+      ctx.lineTo(x + barW, pT + cH);
+      ctx.lineTo(x,        pT + cH);
+      ctx.lineTo(x,        y + r);
+      ctx.arcTo(x,         y,         x + r,    y,           r);
+      ctx.closePath();
+      ctx.fill();
+    } else if (bH > 0) {
+      ctx.fillRect(x, pT + cH - bH, barW, bH);
+    } else {
+      // zero line
+      ctx.fillStyle = '#222244';
+      ctx.fillRect(x, pT + cH - 2, barW, 2);
+    }
+
+    // Amount label above bar
+    if (m.total > 0) {
+      ctx.fillStyle  = isCur ? '#f0c040' : '#7070b0';
+      ctx.font       = `${isCur ? '700 ' : ''}9px sans-serif`;
+      ctx.textAlign  = 'center';
+      ctx.fillText(fmt(m.total), cx, Math.max(y - 4, pT + 10));
+    }
+
+    // Month label below
+    ctx.fillStyle  = isCur ? '#f0c040' : '#6060a0';
+    ctx.font       = isCur ? 'bold 11px sans-serif' : '10px sans-serif';
+    ctx.textAlign  = 'center';
+    ctx.fillText(m.label, cx, H - pB + 16);
+  });
+
+  // Average dashed line
+  if (avg > 0) {
+    const avgY = pT + cH - (avg / maxVal) * cH;
+    ctx.beginPath();
+    ctx.setLineDash([4, 5]);
+    ctx.strokeStyle = 'rgba(168,85,247,0.65)';
+    ctx.lineWidth   = 1.5;
+    ctx.moveTo(pL, avgY);
+    ctx.lineTo(W - pR, avgY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle  = 'rgba(168,85,247,0.85)';
+    ctx.font       = '9px sans-serif';
+    ctx.textAlign  = 'right';
+    ctx.fillText(`평균 ${fmt(avg)}`, W - pR - 2, avgY - 4);
+  }
+
+  // Stats below chart
+  const txs = u.transactions;
+  document.getElementById('stat-count').textContent   = txs.length + '회';
+  document.getElementById('stat-max').textContent     = txs.length ? fmt(Math.max(...txs.map(t => t.amount))) : '0원';
+  document.getElementById('stat-streak').textContent  = calcMaxStreak(u) + '일';
+
+  if (txs.length) {
+    const dc = Array(7).fill(0);
+    txs.forEach(t => { dc[new Date(t.date).getDay()]++; });
+    const best = dc.indexOf(Math.max(...dc));
+    document.getElementById('stat-day').textContent = DAYS_KO[best] + '요일';
+  } else {
+    document.getElementById('stat-day').textContent = '-';
+  }
+}
+
+// ─────────────────────────────────────────────
+// RENDER QUESTS
+// ─────────────────────────────────────────────
+function renderQuests(u) {
+  document.getElementById('quest-list').innerHTML = QUESTS.map(q => {
+    const done = u.completedMissions.includes(q.id);
+    let pct = 0, progLabel = '';
+
+    switch (q.id) {
+      case 'first':
+        pct = Math.min(100, u.transactions.length * 100);
+        progLabel = `${Math.min(u.transactions.length, 1)} / 1회`;
+        break;
+      case 'm10':
+        pct = Math.min(100, (u.total / 100_000) * 100);
+        progLabel = `${fmt(Math.min(u.total,100_000))} / 10만원`;
+        break;
+      case 'm100':
+        pct = Math.min(100, (u.total / 1_000_000) * 100);
+        progLabel = `${fmt(Math.min(u.total,1_000_000))} / 100만원`;
+        break;
+      case 'm500':
+        pct = Math.min(100, (u.total / 5_000_000) * 100);
+        progLabel = `${fmt(Math.min(u.total,5_000_000))} / 500만원`;
+        break;
+      case 'm1000':
+        pct = Math.min(100, (u.total / 10_000_000) * 100);
+        progLabel = `${fmt(Math.min(u.total,10_000_000))} / 1000만원`;
+        break;
+      case 'streak7': {
+        const s = calcCurrentStreak(u);
+        pct = Math.min(100, (s / 7) * 100);
+        progLabel = `${s} / 7일`;
+        break;
+      }
+      case 'big': {
+        const has = u.transactions.some(t => t.amount >= 500_000);
+        pct = has ? 100 : 0;
+        progLabel = has ? '달성!' : '단건 50만원↑ 필요';
+        break;
+      }
+    }
+
+    return `<div class="quest-item">
+      <div class="quest-icon">${q.icon}</div>
+      <div class="quest-info">
+        <div class="quest-name">${q.name}${done ? ' ✅' : ''}</div>
+        <div class="quest-desc">${q.desc}</div>
+        <div class="quest-progress-wrap">
+          <div class="quest-progress-fill" style="width:${pct.toFixed(1)}%"></div>
+        </div>
+        <div style="font-size:0.67rem;color:var(--text2);margin-top:3px">${progLabel}</div>
+      </div>
+      ${done
+        ? '<div class="quest-done">완료</div>'
+        : `<div class="quest-reward">+${q.exp} EXP</div>`}
+    </div>`;
+  }).join('');
+}
+
+// ─────────────────────────────────────────────
+// RENDER BADGES
+// ─────────────────────────────────────────────
+function renderBadges(u) {
+  document.getElementById('badge-list').innerHTML = BADGES.map(b => {
+    const earned = b.cond(u);
+    return `<div class="badge-item ${earned ? 'earned' : ''}">
+      <span class="badge-emoji">${b.emoji}</span>
+      <div class="badge-name">${b.name}</div>
+    </div>`;
+  }).join('');
+}
+
+// ─────────────────────────────────────────────
+// RENDER TRANSACTIONS
+// ─────────────────────────────────────────────
+function renderTransactions(u) {
+  const el = document.getElementById('tx-list');
+  if (!u.transactions.length) {
+    el.innerHTML = '<div class="tx-empty">아직 저금 기록이 없어요. 첫 저금을 시작해보세요! 💪</div>';
+    return;
+  }
+  const sorted = [...u.transactions].sort((a,b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
+  el.innerHTML = sorted.map(t => `
+    <div class="tx-item">
+      <div class="tx-left">
+        <div class="tx-date">${t.date}</div>
+        <div class="tx-memo">${escHtml(t.memo) || '저금'}</div>
+      </div>
+      <div class="tx-amount">+${t.amount.toLocaleString()}원</div>
+      <button class="btn-del" onclick="deleteTx('${t.id}')">×</button>
+    </div>`).join('');
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─────────────────────────────────────────────
+// SAVE MODAL
+// ─────────────────────────────────────────────
+function openSaveModal() {
+  document.getElementById('save-amount').value = '';
+  document.getElementById('save-memo').value   = '';
+  document.querySelectorAll('.btn-quick').forEach(b => b.classList.remove('selected'));
+  document.getElementById('save-modal').classList.add('show');
+  setTimeout(() => document.getElementById('save-amount').focus(), 400);
+}
+function closeSaveModal() {
+  document.getElementById('save-modal').classList.remove('show');
+}
+function onSaveOverlayClick(e) {
+  if (e.target === document.getElementById('save-modal')) closeSaveModal();
+}
+function setQuickAmount(n, btn) {
+  document.getElementById('save-amount').value = n;
+  document.querySelectorAll('.btn-quick').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+function clearQuickSelect() {
+  document.querySelectorAll('.btn-quick').forEach(b => b.classList.remove('selected'));
+}
+
+async function doSave() {
+  const amtRaw = document.getElementById('save-amount').value;
+  const amt    = parseInt(amtRaw, 10);
+  if (!amt || amt < 1) { alert('올바른 금액을 입력하세요.'); return; }
+  const memo = document.getElementById('save-memo').value.trim();
+
+  const u       = getUser(currentUser);
+  const prevIdx = getLevelIdx(u.total);
+
+  const now      = new Date();
+  const dateStr  = now.toISOString().split('T')[0];
+  const monthStr = dateStr.slice(0, 7);
+
+  u.transactions.push({ id: 'tx_' + Date.now(), amount: amt, memo, date: dateStr, month: monthStr });
+  u.total += amt;
+  u.exp   += Math.floor(amt / 1000);
+
+  // Quest check
+  const newlyDone = [];
+  QUESTS.forEach(q => {
+    if (!u.completedMissions.includes(q.id) && questPassed(q, u)) {
+      u.completedMissions.push(q.id);
+      u.exp += q.exp;
+      newlyDone.push(q);
+    }
+  });
+
+  saveUser(u);
+  closeSaveModal();
+
+  // Bounce
+  triggerBounce();
+  spawnParticles('💰');
+
+  const newIdx = getLevelIdx(u.total);
+  renderAll();
+
+  if (newIdx > prevIdx) {
+    setTimeout(() => showLevelupModal(LEVELS[newIdx]), 350);
+  }
+  if (newlyDone.length) {
+    missionQueue = [...newlyDone];
+    setTimeout(showNextMission, newIdx > prevIdx ? 2800 : 300);
+  }
+}
+
+// ─────────────────────────────────────────────
+// DELETE TX
+// ─────────────────────────────────────────────
+function deleteTx(txId) {
+  if (!confirm('이 저금 기록을 삭제하시겠습니까?\n총액에서 차감됩니다.')) return;
+  const u  = getUser(currentUser);
+  const tx = u.transactions.find(t => t.id === txId);
+  if (!tx) return;
+  u.transactions = u.transactions.filter(t => t.id !== txId);
+  u.total = Math.max(0, u.total - tx.amount);
+  saveUser(u);
+  renderAll();
+}
+
+// ─────────────────────────────────────────────
+// CHARACTER CLICK
+// ─────────────────────────────────────────────
+function onCharClick() {
+  const u    = getUser(currentUser);
+  const lv   = getLvData(u.total);
+  const pool = SPEECHES[lv.lv];
+  const line = pool[Math.floor(Math.random() * pool.length)];
+
+  const bubble = document.getElementById('speech-bubble');
+  bubble.textContent = line;
+  bubble.classList.add('show');
+  if (speechTimer) clearTimeout(speechTimer);
+  speechTimer = setTimeout(() => bubble.classList.remove('show'), 2800);
+
+  triggerBounce();
+}
+
+function triggerBounce() {
+  const wrap = document.getElementById('char-emoji-wrap');
+  wrap.classList.remove('bounce');
+  void wrap.offsetWidth;
+  wrap.classList.add('bounce');
+  setTimeout(() => wrap.classList.remove('bounce'), 600);
+}
+
+// ─────────────────────────────────────────────
+// LEVEL UP MODAL
+// ─────────────────────────────────────────────
+function showLevelupModal(lv) {
+  document.getElementById('levelup-sprite').className = `char-sprite ${lv.spriteClass}`;
+  document.getElementById('levelup-lv').textContent    = `Lv.${lv.lv} 달성`;
+  document.getElementById('levelup-name').textContent  = lv.title;
+
+  // confetti
+  const wrap = document.getElementById('confetti-wrap');
+  wrap.innerHTML = '';
+  const colors = ['#f0c040','#ff6b6b','#6bffa0','#6bbfff','#ff6bff','#ffffff'];
+  for (let i = 0; i < 36; i++) {
+    const p       = document.createElement('div');
+    p.className   = 'confetti-piece';
+    p.style.left  = Math.random() * 100 + '%';
+    p.style.background = colors[i % colors.length];
+    p.style.animationDelay    = (Math.random() * 0.6) + 's';
+    p.style.animationDuration = (1.2 + Math.random() * 0.8) + 's';
+    p.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    p.style.width  = (6 + Math.random() * 6) + 'px';
+    p.style.height = (6 + Math.random() * 6) + 'px';
+    wrap.appendChild(p);
+  }
+
+  document.getElementById('levelup-modal').classList.add('show');
+  spawnParticles('🎉');
+  spawnParticles('⭐');
+}
+function closeLevelupModal() {
+  document.getElementById('levelup-modal').classList.remove('show');
+}
+
+// ─────────────────────────────────────────────
+// MISSION MODAL
+// ─────────────────────────────────────────────
+function showNextMission() {
+  if (!missionQueue.length) return;
+  const q = missionQueue.shift();
+  document.getElementById('mission-icon').textContent  = q.icon;
+  document.getElementById('mission-title').textContent = `퀘스트 완료: ${q.name}`;
+  document.getElementById('mission-exp').textContent   = `+${q.exp} EXP 획득!`;
+  document.getElementById('mission-modal').classList.add('show');
+}
+function closeMissionModal() {
+  document.getElementById('mission-modal').classList.remove('show');
+  if (missionQueue.length) setTimeout(showNextMission, 300);
+}
+
+// ─────────────────────────────────────────────
+// PARTICLES
+// ─────────────────────────────────────────────
+function spawnParticles(emoji) {
+  for (let i = 0; i < 6; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.textContent = emoji;
+    p.style.left  = (15 + Math.random() * 70) + 'vw';
+    p.style.top   = (35 + Math.random() * 30) + 'vh';
+    p.style.animationDelay = (Math.random() * 0.5) + 's';
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 1300);
+  }
+}
+
+// ─────────────────────────────────────────────
+// DATA IO
+// ─────────────────────────────────────────────
+function showDataModal() {
+  document.getElementById('data-modal').classList.add('show');
+}
+function closeDataModal() {
+  document.getElementById('data-modal').classList.remove('show');
+}
+function onDataOverlayClick(e) {
+  if (e.target === document.getElementById('data-modal')) closeDataModal();
+}
+
+function exportData() {
+  const u    = getUser(currentUser);
+  const blob = new Blob([JSON.stringify(u, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `rpg_${u.name}_${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (!data.email || !Array.isArray(data.transactions)) {
+        alert('올바른 저금 데이터 파일이 아닙니다.');
+        return;
+      }
+      if (data.email !== currentUser) {
+        if (!confirm(`이 파일은 다른 계정(${data.email})의 데이터입니다.\n그래도 불러오시겠습니까?`)) return;
+        data.email = currentUser;
+      }
+      if (!confirm('현재 데이터를 파일의 데이터로 덮어쓰시겠습니까?')) return;
+      // ensure required fields
+      data.completedMissions = data.completedMissions || [];
+      data.exp   = data.exp   || 0;
+      data.total = data.total || 0;
+      saveUser(data);
+      closeDataModal();
+      renderAll();
+      alert('데이터를 성공적으로 불러왔습니다!');
+    } catch {
+      alert('파일을 읽는 중 오류가 발생했습니다.');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+function init() {
+  const session = getSession();
+  if (session && getUser(session)) {
+    currentUser = session;
+    showMain();
+  }
+
+  // Keyboard shortcuts
+  document.getElementById('login-pw').addEventListener('keydown',   e => { if (e.key==='Enter') doLogin(); });
+  document.getElementById('signup-pw').addEventListener('keydown',  e => { if (e.key==='Enter') doSignup(); });
+  document.getElementById('save-amount').addEventListener('keydown',e => { if (e.key==='Enter') doSave(); });
+
+  // Resize → redraw chart
+  window.addEventListener('resize', () => {
+    if (!currentUser) return;
+    const u = getUser(currentUser);
+    if (u) renderChart(u);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
