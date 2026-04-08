@@ -1,4 +1,4 @@
-const CACHE = '1억-rpg-v4';
+const CACHE = '1억-rpg-v5';
 const ASSETS = [
   '/money/',
   '/money/index.html',
