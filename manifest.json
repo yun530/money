@@ -1,0 +1,26 @@
+{
+  "name": "1억 RPG — 억만장자 퀘스트",
+  "short_name": "1억 RPG",
+  "description": "저금할 때마다 레벨업, 1억 달성이 최종 보스",
+  "start_url": "/money/",
+  "scope": "/money/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0b14",
+  "theme_color": "#ffcc00",
+  "lang": "ko",
+  "icons": [
+    {
+      "src": "assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
