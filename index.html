@@ -1680,19 +1680,33 @@ function importData(e) {
   reader.onload = ev => {
     try {
       const data = JSON.parse(ev.target.result);
-      if (!data.email || !Array.isArray(data.transactions)) {
+      if (!data.email || typeof data.email !== 'string' || !Array.isArray(data.transactions)) {
         alert('올바른 저금 데이터 파일이 아닙니다.');
         return;
       }
+      // sanitize before using in dialog
+      const safeEmail = data.email.replace(/[^a-zA-Z0-9@._+-]/g, '').slice(0, 100);
       if (data.email !== currentUser) {
-        if (!confirm(`이 파일은 다른 계정(${data.email})의 데이터입니다.\n그래도 불러오시겠습니까?`)) return;
+        if (!confirm(`이 파일은 다른 계정(${safeEmail})의 데이터입니다.\n그래도 불러오시겠습니까?`)) return;
         data.email = currentUser;
       }
       if (!confirm('현재 데이터를 파일의 데이터로 덮어쓰시겠습니까?')) return;
+      // validate & sanitize transactions
+      data.transactions = data.transactions.filter(t =>
+        t && typeof t.amount === 'number' && t.amount > 0 && t.amount <= 100000000 &&
+        typeof t.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(t.date)
+      ).map(t => ({
+        id:     String(t.id || ('tx_' + Date.now() + Math.random())).slice(0, 40),
+        amount: Math.floor(t.amount),
+        memo:   String(t.memo || '저금').slice(0, 100),
+        date:   t.date,
+        month:  t.date.slice(0, 7)
+      }));
       // ensure required fields
-      data.completedMissions = data.completedMissions || [];
-      data.exp   = data.exp   || 0;
-      data.total = data.total || 0;
+      data.completedMissions = Array.isArray(data.completedMissions) ? data.completedMissions : [];
+      data.exp   = typeof data.exp   === 'number' ? data.exp   : 0;
+      data.total = data.transactions.reduce((s, t) => s + t.amount, 0); // recalculate from transactions
+      data.name  = typeof data.name  === 'string' ? data.name.slice(0, 30) : '플레이어';
       saveUser(data);
       closeDataModal();
       renderAll();
