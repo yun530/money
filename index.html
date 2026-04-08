@@ -1217,10 +1217,15 @@ function showMain() {
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app').style.display = '';
   renderAll();
-  // 최초 로그인 시 잔액 입력 팝업 (이미 본 경우 스킵)
   const u = getUser(currentUser);
-  if (u && !u.initDone) {
-    setTimeout(() => document.getElementById('init-modal').classList.add('show'), 400);
+  // 트랜잭션 없는 유저는 initDone 리셋 (기존에 잘못 저장된 플래그 대응)
+  if (u && u.transactions.length === 0 && u.initDone) {
+    u.initDone = false;
+    saveUser(u);
+  }
+  // 저금 기록 없는 신규 유저에게만 표시
+  if (u && u.transactions.length === 0 && !u.initDone) {
+    document.getElementById('init-modal').classList.add('show');
   }
 }
 
