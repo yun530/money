@@ -894,6 +894,25 @@ h1, h2, .title-font { font-family: 'Press Start 2P', cursive; text-transform: up
   </div>
 </div>
 
+<!-- Initial Balance Modal -->
+<div class="modal-overlay center-modal" id="init-modal">
+  <div class="levelup-box" onclick="event.stopPropagation()" style="text-align:center; padding:32px 28px; max-width:340px; width:100%">
+    <div style="font-size:2.5rem; margin-bottom:12px">💰</div>
+    <div class="levelup-title" style="font-size:0.85rem; margin-bottom:8px">이미 모은 돈이 있나요?</div>
+    <div style="color:var(--text2); font-size:0.75rem; margin-bottom:24px; line-height:1.6; font-family:'Noto Sans KR',sans-serif">
+      현재 저금해둔 금액을 입력하면<br>지금 상태에서 바로 시작할 수 있어요
+    </div>
+    <input class="modal-input" type="text" inputmode="numeric" id="init-amount"
+      placeholder="예: 3,500,000" oninput="onInitAmountInput(this)"
+      style="margin-bottom:8px; text-align:center; font-size:1.1rem">
+    <div id="init-amount-display" style="color:var(--gold); font-size:0.8rem; min-height:20px; margin-bottom:20px; font-family:'Noto Sans KR',sans-serif"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeInitModal()">0원으로 시작</button>
+      <button class="btn-primary" style="flex:2" onclick="confirmInitBalance()">이 금액으로 시작!</button>
+    </div>
+  </div>
+</div>
+
 <!-- Data IO Modal -->
 <div class="modal-overlay" id="data-modal" onclick="onDataOverlayClick(event)">
   <div class="modal-box">
@@ -1197,6 +1216,47 @@ function fmtDate(d) {
 function showMain() {
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app').style.display = '';
+  renderAll();
+  // 최초 로그인 시 잔액 입력 팝업 (이미 본 경우 스킵)
+  const u = getUser(currentUser);
+  if (u && !u.initDone) {
+    setTimeout(() => document.getElementById('init-modal').classList.add('show'), 400);
+  }
+}
+
+function onInitAmountInput(el) {
+  const raw = el.value.replace(/[^0-9]/g, '');
+  const num = parseInt(raw, 10);
+  el.value = raw ? num.toLocaleString() : '';
+  el.dataset.raw = raw;
+  const display = document.getElementById('init-amount-display');
+  display.textContent = raw ? `${num.toLocaleString()}원으로 시작` : '';
+}
+
+function closeInitModal() {
+  document.getElementById('init-modal').classList.remove('show');
+  const u = getUser(currentUser);
+  u.initDone = true;
+  saveUser(u);
+}
+
+function confirmInitBalance() {
+  const el  = document.getElementById('init-amount');
+  const raw = el.dataset.raw || el.value.replace(/[^0-9]/g, '');
+  const amt = parseInt(raw, 10) || 0;
+  const u   = getUser(currentUser);
+  if (amt > 0) {
+    const today    = new Date().toISOString().split('T')[0];
+    const monthStr = today.slice(0, 7);
+    u.transactions.push({
+      id: 'tx_init', amount: amt, memo: '이전 저금액',
+      date: today, month: monthStr
+    });
+    u.total = amt;
+  }
+  u.initDone = true;
+  saveUser(u);
+  document.getElementById('init-modal').classList.remove('show');
   renderAll();
 }
 
