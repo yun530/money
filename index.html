@@ -554,6 +554,9 @@ h1, h2, .title-font { font-family: 'Press Start 2P', cursive; text-transform: up
   inset: 0;
   background: rgba(0,0,0,0.72);
   backdrop-filter: blur(4px);
+  /* 모바일 키보드 올라와도 모달이 밀리지 않도록 */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   z-index: 200;
   display: flex;
   align-items: flex-end;
@@ -567,6 +570,7 @@ h1, h2, .title-font { font-family: 'Press Start 2P', cursive; text-transform: up
   background: var(--card2);
   border: 4px solid var(--gold);
   padding: 32px 24px;
+  margin-top: auto;
   width: 100%;
   max-width: 480px;
   transform: translateY(100%);
@@ -859,7 +863,7 @@ h1, h2, .title-font { font-family: 'Press Start 2P', cursive; text-transform: up
       <button class="btn-quick" onclick="setQuickAmount(500000, this)">50만</button>
       <button class="btn-quick" onclick="setQuickAmount(1000000, this)">100만</button>
     </div>
-    <input class="modal-input" type="number" id="save-amount" placeholder="금액 직접 입력 (원)" min="1" oninput="clearQuickSelect()">
+    <input class="modal-input" type="text" inputmode="numeric" id="save-amount" placeholder="금액 직접 입력 (원)" oninput="onAmountInput(this)">
     <input class="modal-input" type="text"   id="save-memo"   placeholder="메모 (선택)">
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeSaveModal()">취소</button>
@@ -972,8 +976,10 @@ let missionQueue  = [];
 // ─────────────────────────────────────────────
 // CRYPTO — SHA-256
 // ─────────────────────────────────────────────
-async function hashPw(pw) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+async function hashPw(pw, email = '') {
+  // email을 salt로 사용해 레인보우 테이블 방어
+  const salted = `${email.toLowerCase()}:${pw}:1억rpg`;
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(salted));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
@@ -1001,14 +1007,42 @@ function switchAuthTab(tab) {
   document.getElementById('signup-error').textContent = '';
 }
 
+function getLoginAttempts(email) {
+  try { return JSON.parse(localStorage.getItem('rpg_attempts') || '{}')[email] || { count: 0, lockedUntil: 0 }; } catch { return { count: 0, lockedUntil: 0 }; }
+}
+function setLoginAttempts(email, data) {
+  const all = JSON.parse(localStorage.getItem('rpg_attempts') || '{}');
+  all[email] = data; localStorage.setItem('rpg_attempts', JSON.stringify(all));
+}
+function resetLoginAttempts(email) {
+  const all = JSON.parse(localStorage.getItem('rpg_attempts') || '{}');
+  delete all[email]; localStorage.setItem('rpg_attempts', JSON.stringify(all));
+}
+
 async function doLogin() {
   const email = document.getElementById('login-email').value.trim().toLowerCase();
   const pw    = document.getElementById('login-pw').value;
   const err   = document.getElementById('login-error');
   if (!email || !pw) { err.textContent = '이메일과 비밀번호를 입력하세요.'; return; }
-  const hash = await hashPw(pw);
+
+  const attempts = getLoginAttempts(email);
+  if (attempts.lockedUntil > Date.now()) {
+    const secs = Math.ceil((attempts.lockedUntil - Date.now()) / 1000);
+    err.textContent = `로그인 시도 횟수 초과. ${secs}초 후 다시 시도하세요.`; return;
+  }
+
+  const hash = await hashPw(pw, email);
   const user = getUser(email);
-  if (!user || user.pw !== hash) { err.textContent = '이메일 또는 비밀번호가 올바르지 않습니다.'; return; }
+  if (!user || user.pw !== hash) {
+    const newCount = (attempts.count || 0) + 1;
+    const lockMs   = newCount >= 5 ? 30_000 : 0;
+    setLoginAttempts(email, { count: newCount, lockedUntil: lockMs ? Date.now() + lockMs : 0 });
+    err.textContent = newCount >= 5
+      ? '5회 연속 실패. 30초 잠금됩니다.'
+      : `이메일 또는 비밀번호가 올바르지 않습니다. (${newCount}/5)`;
+    return;
+  }
+  resetLoginAttempts(email);
   setSession(email);
   currentUser = email;
   showMain();
@@ -1023,7 +1057,7 @@ async function doSignup() {
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent = '올바른 이메일을 입력하세요.'; return; }
   if (!pw || pw.length < 6) { err.textContent = '비밀번호는 6자 이상이어야 합니다.'; return; }
   if (getUser(email)) { err.textContent = '이미 사용 중인 이메일입니다.'; return; }
-  const hash = await hashPw(pw);
+  const hash = await hashPw(pw, email);
   const userData = { name, email, pw: hash, total: 0, exp: 0, completedMissions: [], transactions: [] };
   saveUser(userData);
   setSession(email);
@@ -1099,7 +1133,7 @@ function questPassed(q, userData) {
     case 'm100':    return userData.total >= 1_000_000;
     case 'm500':    return userData.total >= 5_000_000;
     case 'm1000':   return userData.total >= 10_000_000;
-    case 'streak7': return calcCurrentStreak(userData) >= 7;
+    case 'streak7': return calcMaxStreak(userData) >= 7;
     case 'big':     return userData.transactions.some(t => t.amount >= 500_000);
     default:        return false;
   }
@@ -1490,18 +1524,30 @@ function onSaveOverlayClick(e) {
   if (e.target === document.getElementById('save-modal')) closeSaveModal();
 }
 function setQuickAmount(n, btn) {
-  document.getElementById('save-amount').value = n;
+  const el = document.getElementById('save-amount');
+  el.value = n.toLocaleString();
+  el.dataset.raw = String(n);
   document.querySelectorAll('.btn-quick').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
 }
 function clearQuickSelect() {
   document.querySelectorAll('.btn-quick').forEach(b => b.classList.remove('selected'));
 }
+function onAmountInput(el) {
+  clearQuickSelect();
+  const raw = el.value.replace(/[^0-9]/g, '');
+  const num = parseInt(raw, 10);
+  el.value = raw ? num.toLocaleString() : '';
+  el.dataset.raw = raw;
+}
 
 async function doSave() {
-  const amtRaw = document.getElementById('save-amount').value;
+  const amtEl  = document.getElementById('save-amount');
+  const amtRaw = amtEl.dataset.raw || amtEl.value.replace(/[^0-9]/g, '');
   const amt    = parseInt(amtRaw, 10);
   if (!amt || amt < 1) { alert('올바른 금액을 입력하세요.'); return; }
+  const u0 = getUser(currentUser);
+  if (u0.total + amt > 100_000_000) { alert(`최대 1억원까지 저금할 수 있어요.\n현재 ${(100_000_000 - u0.total).toLocaleString()}원까지 가능합니다.`); return; }
   const memo = document.getElementById('save-memo').value.trim();
 
   const u       = getUser(currentUser);
@@ -1554,6 +1600,11 @@ function deleteTx(txId) {
   if (!tx) return;
   u.transactions = u.transactions.filter(t => t.id !== txId);
   u.total = Math.max(0, u.total - tx.amount);
+  // 퀘스트 재검증 — 조건 미충족 시 완료 취소
+  u.completedMissions = u.completedMissions.filter(id => {
+    const q = QUESTS.find(q => q.id === id);
+    return q ? questPassed(q, u) : false;
+  });
   saveUser(u);
   renderAll();
 }
