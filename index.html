@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>1억 RPG — 억만장자 퀘스트</title>
+<title>1억 모으기 — 억만장자 퀘스트</title>
 <meta name="theme-color" content="#ffcc00">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="1억 RPG">
+<meta name="apple-mobile-web-app-title" content="1억 모으기">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="assets/icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700&family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
@@ -259,18 +259,24 @@ h1, h2, .title-font { font-family: 'Press Start 2P', cursive; text-transform: up
   width: 160px;
   height: 160px;
   background-image: url('assets/char.png');
-  background-size: 200%;
+  background-size: 400% 400%;
   background-repeat: no-repeat;
   image-rendering: pixelated;
   transition: transform 0.1s, background-position 0.2s;
   user-select: none;
   filter: drop-shadow(4px 4px 0px rgba(0,0,0,0.5));
 }
-/* Positions based on 1024x1024 2x2 grid */
-.sp1 { background-position: 8% 10%; } /* Beggar */
-.sp2 { background-position: 92% 10%; } /* Office */
-.sp3 { background-position: 8% 90%; } /* Exec */
-.sp4 { background-position: 92% 90%; } /* Billionaire */
+/* 4x4 grid positions — row/col (0-indexed) */
+.sp1  { background-position:   0%     0%; } /* 거지 */
+.sp2  { background-position:  33.33%  0%; } /* 시민 */
+.sp3  { background-position:  66.67%  0%; } /* 직장인 */
+.sp4  { background-position: 100%     0%; } /* 대리 */
+.sp5  { background-position:   0%    33.33%; } /* 과장 */
+.sp6  { background-position:  33.33% 33.33%; } /* 팀장 */
+.sp7  { background-position:  66.67% 33.33%; } /* 임원 */
+.sp8  { background-position: 100%    33.33%; } /* 재벌 2세 */
+.sp9  { background-position:   0%    66.67%; } /* 회장님 */
+.sp10 { background-position: 100%   100%; } /* 억만장자 */
 
 .char-emoji-wrap.bounce .char-sprite {
   animation: charBounce 0.55s ease;
@@ -711,7 +717,7 @@ h1, h2, .title-font { font-family: 'Press Start 2P', cursive; text-transform: up
 
 <!-- ========================== AUTH SCREEN ========================== -->
 <div id="auth-screen">
-  <div class="auth-logo">💰 1억 RPG</div>
+  <div class="auth-logo">💰 1억 모으기</div>
   <div class="auth-sub">거지에서 억만장자로 — 저금의 RPG</div>
   <div class="auth-box">
     <div class="auth-tabs">
@@ -759,7 +765,7 @@ h1, h2, .title-font { font-family: 'Press Start 2P', cursive; text-transform: up
   <!-- Sticky Header -->
   <div id="header">
     <div class="header-left">
-      <div class="header-logo">💰 1억 RPG</div>
+      <div class="header-logo">💰 1억 모으기</div>
       <div class="level-badge" id="header-level">Lv.1</div>
     </div>
     <div class="header-user" id="header-user"></div>
@@ -939,16 +945,16 @@ h1, h2, .title-font { font-family: 'Press Start 2P', cursive; text-transform: up
 const GOAL = 100_000_000;
 
 const LEVELS = [
-  { lv:1,  min:0,           spriteClass:'sp1', title:'누더기 거지', env:'🌧️ 어두운 골목',  item:'구멍난 옷, 깡통',      bg:'lv1'  },
-  { lv:2,  min:1_000_000,   spriteClass:'sp2', title:'평범한 시민', env:'🏘️ 주택가',       item:'일반 옷',              bg:'lv2'  },
-  { lv:3,  min:3_000_000,   spriteClass:'sp2', title:'직장인',      env:'🏢 도심 거리',    item:'넥타이, 서류가방',      bg:'lv3'  },
-  { lv:4,  min:5_000_000,   spriteClass:'sp2', title:'대리',        env:'🏙️ 오피스 빌딩',  item:'정장, 노트북',          bg:'lv4'  },
-  { lv:5,  min:10_000_000,  spriteClass:'sp3', title:'과장',        env:'🌆 도시 야경',    item:'명품 시계',             bg:'lv5'  },
-  { lv:6,  min:20_000_000,  spriteClass:'sp3', title:'팀장',        env:'🏬 고급 빌딩',    item:'명품 수트',             bg:'lv6'  },
-  { lv:7,  min:30_000_000,  spriteClass:'sp3', title:'임원',        env:'🌃 펜트하우스',   item:'롤렉스, 벤츠',          bg:'lv7'  },
-  { lv:8,  min:50_000_000,  spriteClass:'sp4', title:'재벌 2세',    env:'🏰 저택',         item:'다이아몬드, 스포츠카',  bg:'lv8'  },
-  { lv:9,  min:70_000_000,  spriteClass:'sp4', title:'회장님',      env:'🛥️ 요트',         item:'전용기, 요트',          bg:'lv9'  },
-  { lv:10, min:100_000_000, spriteClass:'sp4', title:'억만장자',    env:'🌟 황금 궁전',    item:'황금 왕관, 모든 것',    bg:'lv10' },
+  { lv:1,  min:0,           spriteClass:'sp1',  title:'누더기 거지', env:'🌧️ 어두운 골목',  item:'구멍난 옷, 깡통',      bg:'lv1'  },
+  { lv:2,  min:1_000_000,   spriteClass:'sp2',  title:'평범한 시민', env:'🏘️ 주택가',       item:'일반 옷',              bg:'lv2'  },
+  { lv:3,  min:3_000_000,   spriteClass:'sp3',  title:'직장인',      env:'🏢 도심 거리',    item:'넥타이, 서류가방',      bg:'lv3'  },
+  { lv:4,  min:5_000_000,   spriteClass:'sp4',  title:'대리',        env:'🏙️ 오피스 빌딩',  item:'정장, 노트북',          bg:'lv4'  },
+  { lv:5,  min:10_000_000,  spriteClass:'sp5',  title:'과장',        env:'🌆 도시 야경',    item:'명품 시계',             bg:'lv5'  },
+  { lv:6,  min:20_000_000,  spriteClass:'sp6',  title:'팀장',        env:'🏬 고급 빌딩',    item:'명품 수트',             bg:'lv6'  },
+  { lv:7,  min:30_000_000,  spriteClass:'sp7',  title:'임원',        env:'🌃 펜트하우스',   item:'롤렉스, 벤츠',          bg:'lv7'  },
+  { lv:8,  min:50_000_000,  spriteClass:'sp8',  title:'재벌 2세',    env:'🏰 저택',         item:'다이아몬드, 스포츠카',  bg:'lv8'  },
+  { lv:9,  min:70_000_000,  spriteClass:'sp9',  title:'회장님',      env:'🛥️ 요트',         item:'전용기, 요트',          bg:'lv9'  },
+  { lv:10, min:100_000_000, spriteClass:'sp10', title:'억만장자',    env:'🌟 황금 궁전',    item:'황금 왕관, 모든 것',    bg:'lv10' },
 ];
 
 const SPEECHES = {
