@@ -864,7 +864,7 @@ h1, h2, .title-font { font-family: 'Press Start 2P', cursive; text-transform: up
       <button class="btn-quick" onclick="setQuickAmount(1000000, this)">100만</button>
     </div>
     <input class="modal-input" type="text" inputmode="numeric" id="save-amount" placeholder="금액 직접 입력 (원)" oninput="onAmountInput(this)">
-    <input class="modal-input" type="text"   id="save-memo"   placeholder="메모 (선택)">
+    <input class="modal-input" type="text" id="save-memo" placeholder="메모 (선택)" maxlength="50">
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeSaveModal()">취소</button>
       <button class="btn-primary" style="flex:2" onclick="doSave()">저금!</button>
@@ -1248,21 +1248,30 @@ function closeInitModal() {
 function confirmInitBalance() {
   const el  = document.getElementById('init-amount');
   const raw = el.dataset.raw || el.value.replace(/[^0-9]/g, '');
-  const amt = parseInt(raw, 10) || 0;
+  const amt = Math.min(parseInt(raw, 10) || 0, 100_000_000);
   const u   = getUser(currentUser);
+  const prevIdx = getLevelIdx(u.total);
   if (amt > 0) {
-    const today    = new Date().toISOString().split('T')[0];
+    const now2     = new Date();
+    const today    = `${now2.getFullYear()}-${String(now2.getMonth()+1).padStart(2,'0')}-${String(now2.getDate()).padStart(2,'0')}`;
     const monthStr = today.slice(0, 7);
-    u.transactions.push({
-      id: 'tx_init', amount: amt, memo: '이전 저금액',
-      date: today, month: monthStr
-    });
+    u.transactions.push({ id: 'tx_init', amount: amt, memo: '이전 저금액', date: today, month: monthStr });
     u.total = amt;
+    // 퀘스트 체크
+    QUESTS.forEach(q => {
+      if (!u.completedMissions.includes(q.id) && questPassed(q, u)) {
+        u.completedMissions.push(q.id);
+        u.exp += q.exp;
+      }
+    });
   }
   u.initDone = true;
   saveUser(u);
   document.getElementById('init-modal').classList.remove('show');
   renderAll();
+  // 레벨업 확인
+  const newIdx = getLevelIdx(u.total);
+  if (newIdx > prevIdx) setTimeout(() => showLevelupModal(LEVELS[newIdx]), 300);
 }
 
 // ─────────────────────────────────────────────
@@ -1504,7 +1513,7 @@ function renderQuests(u) {
         progLabel = `${fmt(Math.min(u.total,10_000_000))} / 1000만원`;
         break;
       case 'streak7': {
-        const s = calcCurrentStreak(u);
+        const s = calcMaxStreak(u);
         pct = Math.min(100, (s / 7) * 100);
         progLabel = `${s} / 7일`;
         break;
@@ -1607,10 +1616,15 @@ function onAmountInput(el) {
 }
 
 async function doSave() {
+  const saveBtn = document.querySelector('#save-modal .btn-primary');
+  if (saveBtn.disabled) return;
+  saveBtn.disabled = true;
+  setTimeout(() => { saveBtn.disabled = false; }, 1500);
+
   const amtEl  = document.getElementById('save-amount');
   const amtRaw = amtEl.dataset.raw || amtEl.value.replace(/[^0-9]/g, '');
   const amt    = parseInt(amtRaw, 10);
-  if (!amt || amt < 1) { alert('올바른 금액을 입력하세요.'); return; }
+  if (!amt || amt < 1) { saveBtn.disabled = false; alert('올바른 금액을 입력하세요.'); return; }
   const u0 = getUser(currentUser);
   if (u0.total + amt > 100_000_000) { alert(`최대 1억원까지 저금할 수 있어요.\n현재 ${(100_000_000 - u0.total).toLocaleString()}원까지 가능합니다.`); return; }
   const memo = document.getElementById('save-memo').value.trim();
@@ -1619,7 +1633,8 @@ async function doSave() {
   const prevIdx = getLevelIdx(u.total);
 
   const now      = new Date();
-  const dateStr  = now.toISOString().split('T')[0];
+  // 로컬 날짜 사용 (toISOString은 UTC 기준이라 한국에서 자정 이후 날짜 오류)
+  const dateStr  = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
   const monthStr = dateStr.slice(0, 7);
 
   u.transactions.push({ id: 'tx_' + Date.now(), amount: amt, memo, date: dateStr, month: monthStr });
