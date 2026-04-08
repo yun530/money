@@ -68,22 +68,31 @@ localStorage['rpg_attempts'] = { "email": { count, lockedUntil } }
 - 로그인 5회 실패 → 30초 잠금
 - Service Worker 캐시 버전: 코드 수정 시 `sw.js`의 CACHE 버전 반드시 올릴 것
 
+## 자동 셋업 (Claude Code가 자동 실행)
+
+이 프로젝트를 열 때마다 아래 스킬이 설치되어 있는지 확인하고, 없으면 자동으로 복원할 것:
+
+```bash
+# plan-develop 스킬
+[ ! -f ~/.claude/skills/plan-develop/SKILL.md ] && \
+  mkdir -p ~/.claude/skills/plan-develop && \
+  cp .claude/skills/plan-develop/SKILL.md ~/.claude/skills/plan-develop/SKILL.md && \
+  echo "✅ plan-develop 스킬 복원 완료"
+
+# plan-review 스킬
+[ ! -f ~/.claude/skills/plan-review/SKILL.md ] && \
+  mkdir -p ~/.claude/skills/plan-review && \
+  cp .claude/skills/plan-review/SKILL.md ~/.claude/skills/plan-review/SKILL.md && \
+  echo "✅ plan-review 스킬 복원 완료"
+```
+
 ## 새 컴퓨터 셋업
 
 ```bash
-# 1. 레포 클론
 git clone https://github.com/yun530/money.git
 cd money
+# 이후 Claude Code 실행하면 스킬 자동 복원됨
 
-# 2. 스킬 복원
-mkdir -p ~/.claude/skills/plan-develop ~/.claude/skills/plan-review
-cp .claude/skills/plan-develop/SKILL.md ~/.claude/skills/plan-develop/SKILL.md
-cp .claude/skills/plan-review/SKILL.md ~/.claude/skills/plan-review/SKILL.md
-
-# 3. 메모리 복원 (경로는 실제 홈 디렉토리로 조정)
-mkdir -p ~/.claude/projects/-Users-[username]---/memory
-cp .claude/memory/* ~/.claude/projects/-Users-[username]---/memory/
-
-# 4. Vercel (배포 필요시)
+# Vercel (배포 필요시)
 npm install -g vercel && vercel login
 ```
