@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh repo:*)",
+      "Bash(gh api:*)",
+      "Bash(git -C /Users/yun/금융 diff --stat)",
+      "Bash(git -C /Users/yun/금융 status)",
+      "Bash(git:*)",
+      "Bash(git -C:*)",
+      "Bash(cp ~/.claude/skills/plan-develop/SKILL.md /Users/yun/금융/.claude/skills/plan-develop/SKILL.md)",
+      "Bash(cp ~/.claude/skills/plan-review/SKILL.md /Users/yun/금융/.claude/skills/plan-review/SKILL.md)",
+      "Bash(cp ~/.claude/projects/-Users-yun---/memory/MEMORY.md /Users/yun/금융/.claude/memory/MEMORY.md)",
+      "Bash(cp ~/.claude/projects/-Users-yun---/memory/project_1억rpg.md /Users/yun/금융/.claude/memory/project_1억rpg.md)"
+    ]
+  }
+}
