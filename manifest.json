@@ -1,6 +1,6 @@
 {
-  "name": "1억 RPG — 억만장자 퀘스트",
-  "short_name": "1억 RPG",
+  "name": "1억 모으기 — 억만장자 퀘스트",
+  "short_name": "1억 모으기",
   "description": "저금할 때마다 레벨업, 1억 달성이 최종 보스",
   "start_url": "/money/",
   "scope": "/money/",
