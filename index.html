@@ -1170,12 +1170,13 @@ function questPassed(q, userData) {
 function calcForecast(userData) {
   const today = new Date(); today.setHours(0,0,0,0);
   const cutoff = new Date(today); cutoff.setDate(cutoff.getDate() - 30);
-  const sum30  = userData.transactions.filter(t => new Date(t.date) >= cutoff)
+  const sum30  = userData.transactions.filter(t => t.id !== 'tx_init' && new Date(t.date) >= cutoff)
                                        .reduce((a,t) => a + t.amount, 0);
   const daily  = sum30 / 30;
   const res    = { daily, sum30 };
 
-  if (!userData.transactions.length) {
+  const realTx = userData.transactions.filter(t => t.id !== 'tx_init');
+  if (!realTx.length) {
     return { ...res, hasData: false, msg: '저금을 시작하면 예상일을 알 수 있어요' };
   }
   if (sum30 === 0) {
