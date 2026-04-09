@@ -1122,8 +1122,9 @@ function getExpPct(total) {
 // STREAK
 // ─────────────────────────────────────────────
 function calcCurrentStreak(userData) {
-  if (!userData.transactions.length) return 0;
-  const dates = [...new Set(userData.transactions.map(t => t.date))].sort().reverse();
+  const realTx = userData.transactions.filter(t => t.id !== 'tx_init');
+  if (!realTx.length) return 0;
+  const dates = [...new Set(realTx.map(t => t.date))].sort().reverse();
   if (!dates.length) return 0;
   const today = new Date(); today.setHours(0,0,0,0);
   const last  = new Date(dates[0]); last.setHours(0,0,0,0);
@@ -1137,8 +1138,9 @@ function calcCurrentStreak(userData) {
 }
 
 function calcMaxStreak(userData) {
-  if (!userData.transactions.length) return 0;
-  const dates = [...new Set(userData.transactions.map(t => t.date))].sort();
+  const realTx = userData.transactions.filter(t => t.id !== 'tx_init');
+  if (!realTx.length) return 0;
+  const dates = [...new Set(realTx.map(t => t.date))].sort();
   if (!dates.length) return 0;
   let max = 1, cur = 1;
   for (let i = 1; i < dates.length; i++) {
@@ -1153,13 +1155,13 @@ function calcMaxStreak(userData) {
 // ─────────────────────────────────────────────
 function questPassed(q, userData) {
   switch (q.id) {
-    case 'first':   return userData.transactions.length >= 1;
+    case 'first':   return userData.transactions.some(t => t.id !== 'tx_init');
     case 'm10':     return userData.total >= 100_000;
     case 'm100':    return userData.total >= 1_000_000;
     case 'm500':    return userData.total >= 5_000_000;
     case 'm1000':   return userData.total >= 10_000_000;
     case 'streak7': return calcMaxStreak(userData) >= 7;
-    case 'big':     return userData.transactions.some(t => t.amount >= 500_000);
+    case 'big':     return userData.transactions.some(t => t.id !== 'tx_init' && t.amount >= 500_000);
     default:        return false;
   }
 }
